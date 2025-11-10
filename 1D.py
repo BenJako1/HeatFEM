@@ -38,18 +38,52 @@ class Bar:
             print(f'Conductivity matrix: \n {self.Conductance}')
     
     def bound(self, boundDict, verbose=False):
-        if len(boundDict["nodes"]) == len(boundDict["type"]) == len(boundDict["value"]):
-            # MAKE BOUNDARY INPUT SIMPLER
+        nodes_unpacked = []
+        types_unpacked = []
+        values_unpacked = []
+
+        for node, type, value in zip(boundDict["nodes"], boundDict["type"], boundDict["value"]):
+            if isinstance(node, str) and ":" in node:
+                parts = [int(x) for x in node.split(":")]
+                node_range = range(*parts)
+                nodes_unpacked.extend(node_range)
+                types_unpacked.extend([type] * len(node_range))
+                values_unpacked.extend([value] * len(node_range))
+            elif isinstance(node, (list, tuple)):
+                nodes_unpacked.extend(node)
+                types_unpacked.extend([type] * len(node))
+                values_unpacked.extend([value] * len(node))
+            else:
+                nodes_unpacked.append(int(node))
+                types_unpacked.append(type)
+                values_unpacked.append(value)
+
+        if len(nodes_unpacked) == len(types_unpacked) == len(values_unpacked):
             self.T = np.full(shape=[self.N], fill_value=None, dtype=object)
             self.Q = np.full(shape=[self.N], fill_value=0, dtype=object)
             self.boundNodes = []
-            for i in range(len(boundDict["nodes"])):
-                if boundDict["type"][i] == "temp":
-                    self.T[boundDict["nodes"][i]] = boundDict["value"][i]
-                    self.Q[boundDict["nodes"][i]] = None
-                    self.boundNodes.append(boundDict["nodes"][i])
-                elif boundDict["type"][i] == "flux":
-                    self.Q[boundDict["nodes"][i]] = boundDict["value"][i]
+
+            for i in range(len(nodes_unpacked)):
+                if types_unpacked[i] == "temp":
+                    self.T[nodes_unpacked[i]] = values_unpacked[i]
+                    self.Q[nodes_unpacked[i]] = None
+                    self.boundNodes.append(nodes_unpacked[i])
+                elif types_unpacked[i] == "flux":
+                    self.Q[nodes_unpacked[i]] += values_unpacked[i]
+                elif types_unpacked[i] == "gen":
+                    if nodes_unpacked[i] <= max(nodes_unpacked):
+                        if self.Q[nodes_unpacked[i]] == None:
+                            self.Q[nodes_unpacked[i]] = self.A * values_unpacked[i] * \
+                                                            (self.nodes[nodes_unpacked[i]+1] - self.nodes[nodes_unpacked[i]]) / 2
+                        else:
+                            self.Q[nodes_unpacked[i]] += self.A * values_unpacked[i] * \
+                                                            (self.nodes[nodes_unpacked[i]+1] - self.nodes[nodes_unpacked[i]]) / 2
+                        if self.Q[nodes_unpacked[i]+1] == None:
+                            self.Q[nodes_unpacked[i]+1] = self.A * values_unpacked[i] * \
+                                                            (self.nodes[nodes_unpacked[i]+1] - self.nodes[nodes_unpacked[i]]) / 2
+                        else:
+                            self.Q[nodes_unpacked[i]+1] += self.A * values_unpacked[i] * \
+                                                        (self.nodes[nodes_unpacked[i]+1] - self.nodes[nodes_unpacked[i]]) / 2
         else:
             raise ValueError("Boundary entries must have the same length")
 
@@ -62,10 +96,10 @@ class Bar:
     def solve(self):
         solutionArray = self.Conductance
         Q = self.Q
+
         for i in range(len(self.boundNodes)):
             solutionArray = np.delete(solutionArray, self.boundNodes[i] - i, axis=0)
             Q = np.delete(Q, self.boundNodes[i] - i, axis=0)
-            print(Q, solutionArray[:,0], self.boundNodes[i])
         
         for i in range(len(self.boundNodes)):
             Q = Q - solutionArray[:,self.boundNodes[i]] * self.T[self.boundNodes[i]]
@@ -73,7 +107,6 @@ class Bar:
         for i in range(len(self.boundNodes)):
             solutionArray = np.delete(solutionArray, self.boundNodes[i] - i, axis=1)
 
-        print(solutionArray, Q)
         if len(solutionArray[0]) >= 2:
             T_unknown = np.linalg.solve(np.float64(solutionArray), np.float64(Q))
         elif len(solutionArray[0]) == 1:
@@ -88,10 +121,10 @@ class Bar:
         return T_sol
 
 if __name__ == "__main__":
-    sim = Bar(k=1, A=1)
-    sim.geometry(L=3, N=50, verbose=True)
-    sim.assemble_conductance(verbose=True)
-    boundDict = {"nodes": [0,24,49], "type": ["temp","flux","temp"], "value": [100,10,0]}
+    sim = Bar(k=0.1, A=1)
+    sim.geometry(L=1, N=100, verbose=False)
+    sim.assemble_conductance(verbose=False)
+    boundDict = {"nodes": [0,"0:99",99], "type": ["temp","gen","temp"], "value": [0,10,0]}
     sim.bound(boundDict, verbose=True)
     T = sim.solve()
 
@@ -103,9 +136,6 @@ if __name__ == "__main__":
 
 """
 TO DO:
-- Fix error in solve() when more than one T input is given
-    Q = Q - solutionArray[:,0] * self.T[self.boundNodes[i]]
-    TypeError: unsupported operand type(s) for -: 'NoneType' and 'float'
-- Make BC input easier
-- Make variable names in solve() more clear
+- Add convection BC
+- Back-calculate unknown Qs
 """
