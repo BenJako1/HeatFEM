@@ -1,3 +1,4 @@
+import numpy as np
 
 def unpack_dict(input_dict, ):
     # Keys and their lists
@@ -46,3 +47,13 @@ def unpack_dict(input_dict, ):
                 unpacked[k].extend([v] * main_len)
 
     return unpacked
+
+if __name__ == "__main__":
+    convSurf_1 = np.array([0.1,1,20])
+    boundDict = {"nodes": [0,"0:19",19], "type": ["temp","convSurf","temp"], "value": [100,convSurf_1,100]}
+    result = unpack_dict(boundDict)
+    #print(result)
+
+    values = result["value"]
+
+    print(values[1][0])

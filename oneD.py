@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import utils
 
-class Bar:
+class oneD:
     def __init__(self, k, A):
         self.x = None
         self.N = None
@@ -46,9 +46,6 @@ class Bar:
             print(f'Conductivity matrix: \n {self.Conductance}')
     
     def bound(self, boundDict, verbose=False):
-        if len(set([len(boundDict["nodes"]), len(boundDict["type"]), len(boundDict["value"])])) != 1:
-            raise ValueError("Boundary entries must have the same length")
-
         boundDict_unpacked = utils.unpack_dict(boundDict)
         nodes_unpacked = boundDict_unpacked["nodes"]
         types_unpacked = boundDict_unpacked["type"]
@@ -65,35 +62,39 @@ class Bar:
                     self.Q[nodes_unpacked[i]] = None
                 self.boundNodes.append(nodes_unpacked[i])
             elif types_unpacked[i] == "flux":
-                if self.Q[nodes_unpacked[i]+1] == None:
-                    self.Q[nodes_unpacked[i]] += values_unpacked[i]
-                else:
+                if self.Q[nodes_unpacked[i]] == None:
                     self.Q[nodes_unpacked[i]] = values_unpacked[i]
+                else:
+                    self.Q[nodes_unpacked[i]] += values_unpacked[i]
             elif types_unpacked[i] == "gen":
+                Q_value = self.A * values_unpacked[i] * self.element_len[nodes_unpacked[i]]
                 if self.Q[nodes_unpacked[i]] == None:
-                    self.Q[nodes_unpacked[i]] = self.A * values_unpacked[i] * self.element_len[nodes_unpacked[i]] / 2
+                    self.Q[nodes_unpacked[i]] = Q_value / 2
                 else:
-                    self.Q[nodes_unpacked[i]] += self.A * values_unpacked[i] * self.element_len[nodes_unpacked[i]] / 2
+                    self.Q[nodes_unpacked[i]] += Q_value / 2
                 if self.Q[nodes_unpacked[i]+1] == None:
-                    self.Q[nodes_unpacked[i]+1] = self.A * values_unpacked[i] * self.element_len[nodes_unpacked[i]] / 2
+                    self.Q[nodes_unpacked[i]+1] = Q_value / 2
                 else:
-                    self.Q[nodes_unpacked[i]+1] += self.A * values_unpacked[i] * self.element_len[nodes_unpacked[i]] / 2
-            elif types_unpacked[i] == "convFace":   # Requires h*T_inf as input
+                    self.Q[nodes_unpacked[i]+1] += Q_value / 2
+            elif types_unpacked[i] == "convFace":   # Requires [h, T_inf] as input
+                Q_value = float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * self.A
+                self.Convection[nodes_unpacked[i]] += float(values_unpacked[i][0]) * self.A
                 if self.Q[nodes_unpacked[i]] == None:
-                    self.Convection[nodes_unpacked[i]] = float(values_unpacked[i]) * self.A
-                    self.Q[nodes_unpacked[i]] += float(values_unpacked[i]) * self.A
+                    self.Q[nodes_unpacked[i]] = Q_value
                 else:
-                    self.Convection[nodes_unpacked[i]] += float(values_unpacked[i]) * self.A
-                    self.Q[nodes_unpacked[i]] = float(values_unpacked[i]) * self.A
-            elif types_unpacked[i] == "convSurf":   # Requires h*T_inf*A_s as input
+                    self.Q[nodes_unpacked[i]] += Q_value
+            elif types_unpacked[i] == "convSurf":   # Requires [h, W_c, T_inf]  as input
+                Q_value = float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * float(values_unpacked[i][2]) * self.element_len[nodes_unpacked[i]]
+                self.Convection[nodes_unpacked[i]] += float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * self.element_len[nodes_unpacked[i]]
                 if self.Q[nodes_unpacked[i]] == None:
-                    self.Convection[nodes_unpacked[i]] += float(values_unpacked[i]) * self.A * self.element_len[nodes_unpacked[i]]
-                    self.Q[nodes_unpacked[i]] = float(values_unpacked[i]) * self.A * self.element_len[nodes_unpacked[i]]
+                    self.Q[nodes_unpacked[i]] = Q_value / 2
                 else:
-                    self.Convection[nodes_unpacked[i]] += float(values_unpacked[i]) * self.A * self.element_len[nodes_unpacked[i]]
-                    self.Q[nodes_unpacked[i]] += float(values_unpacked[i]) * self.A * self.element_len[nodes_unpacked[i]]
-            
-                
+                    self.Q[nodes_unpacked[i]] += Q_value / 2
+                if self.Q[nodes_unpacked[i]+1] == None:
+                    self.Q[nodes_unpacked[i]+1] = Q_value / 2
+                else:
+                    self.Q[nodes_unpacked[i]+1] += Q_value / 2
+    
         self.freeNodes = [int(i) for i in range(self.N) if i not in self.boundNodes]
 
         if verbose:
@@ -138,15 +139,17 @@ class Bar:
         return T_sol, Q_sol
 
 if __name__ == "__main__":
-    sim = Bar(k=0.1, A=1)
-    sim.geometry(L=1, N=20, verbose=False)
+    sim = oneD(k=0.2, A=200)
+    sim.geometry(L=120, N=4, verbose=False)
     sim.assemble_conductance(verbose=False)
-    propertiesDict = {"nodes": [2]}
-    boundDict = {"nodes": [0,"0:19"], "type": ["temp","convSurf"], "value": [80,10]}
+    convSurfProp = np.array([2e-4, 160, 30])
+    convFaceProp = np.array([2e-4, 30])
+    boundDict = {"nodes": [0,"1:3",3], "type": ["temp","flux","flux"], "value": [330,0,-200]}
     sim.bound(boundDict, verbose=True)
     T, Q = sim.solve()
 
     print(T)
+    print(Q)
 
     plt.plot(sim.x, T)
     plt.xlim(0,max(sim.x))
@@ -155,7 +158,8 @@ if __name__ == "__main__":
 
 """
 TO DO:
-- Add "preperties" dict to allow for non-uniform h and k and T_inf
+- Fix convection parameter input
+- Add "properties" dict to allow for non-uniform h and k and T_inf
 - Edge case check especially on back calculating Q
 - Allow for separate h, T_inf and A_s inputs
 - Evaluate whether datatype "None" should realy be used
