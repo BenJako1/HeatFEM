@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import utils
 
 class Bar:
     def __init__(self, k, A):
@@ -48,25 +49,10 @@ class Bar:
         if len(set([len(boundDict["nodes"]), len(boundDict["type"]), len(boundDict["value"])])) != 1:
             raise ValueError("Boundary entries must have the same length")
 
-        nodes_unpacked = []
-        types_unpacked = []
-        values_unpacked = []
-
-        for node, type, value in zip(boundDict["nodes"], boundDict["type"], boundDict["value"]):
-            if isinstance(node, str) and ":" in node:
-                parts = [int(x) for x in node.split(":")]
-                node_range = range(*parts)
-                nodes_unpacked.extend(node_range)
-                types_unpacked.extend([type] * len(node_range))
-                values_unpacked.extend([float(value)] * len(node_range))
-            elif isinstance(node, (list, tuple)):
-                nodes_unpacked.extend(node)
-                types_unpacked.extend([type] * len(node))
-                values_unpacked.extend([float(value)] * len(node))
-            else:
-                nodes_unpacked.append(int(node))
-                types_unpacked.append(type)
-                values_unpacked.append(float(value))
+        boundDict_unpacked = utils.unpack_dict(boundDict)
+        nodes_unpacked = boundDict_unpacked["nodes"]
+        types_unpacked = boundDict_unpacked["type"]
+        values_unpacked = boundDict_unpacked["value"]
 
         self.T = np.full(shape=[self.N], fill_value=0, dtype=object)
         self.Q = np.full(shape=[self.N], fill_value=0, dtype=object)
