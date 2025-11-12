@@ -12,7 +12,7 @@ class oneD:
         self.k = k
         self.A = A
     
-    def geometry(self, L=1, N=5, verbose=False):
+    def geometry(self, L, N, verbose=False):
         self.N = N
         self.nodes = np.array(list(range(N)))
         self.x = np.linspace(0, L, N)
@@ -22,7 +22,7 @@ class oneD:
             self.elements[i, 0] = i
             self.elements[i, 1] = i+1
 
-        self.element_len = np.zeros([N-1, 1])
+        self.element_len = np.zeros([N-1])
         for i in range(self.N-1):
             self.element_len[i] = ((self.x[i+1] - self.x[i]))
 
@@ -32,15 +32,13 @@ class oneD:
             print(f'Elements lengths: \n {self.element_len}')
 
     def assemble_conductance(self, verbose=False):
-        element_conductance = np.array([[1, -1],
-                                       [-1, 1]])
         self.Conductance = np.zeros([self.N, self.N])
         for i in range(self.N-1):
             coefficient = self.k * self.A / self.element_len[i]
-            self.Conductance[i, i] += element_conductance[0, 0] * coefficient
-            self.Conductance[i, i+1] += element_conductance[0, 1] * coefficient
-            self.Conductance[i+1, i] += element_conductance[1, 0] * coefficient
-            self.Conductance[i+1, i+1] += element_conductance[1, 1] * coefficient
+            self.Conductance[i, i] += coefficient
+            self.Conductance[i, i+1] += -coefficient
+            self.Conductance[i+1, i] += -coefficient
+            self.Conductance[i+1, i+1] += coefficient
         
         if verbose:
             print(f'Conductivity matrix: \n {self.Conductance}')
@@ -58,42 +56,24 @@ class oneD:
         for i in range(len(nodes_unpacked)):
             if types_unpacked[i] == "temp":
                 self.T[nodes_unpacked[i]] = values_unpacked[i]
-                if self.Q[nodes_unpacked[i]] == 0:
-                    self.Q[nodes_unpacked[i]] = None
                 self.boundNodes.append(nodes_unpacked[i])
             elif types_unpacked[i] == "flux":
-                if self.Q[nodes_unpacked[i]] == None:
-                    self.Q[nodes_unpacked[i]] = values_unpacked[i]
-                else:
-                    self.Q[nodes_unpacked[i]] += values_unpacked[i]
+                self.Q[nodes_unpacked[i]] += values_unpacked[i]
             elif types_unpacked[i] == "gen":
                 Q_value = self.A * values_unpacked[i] * self.element_len[nodes_unpacked[i]]
-                if self.Q[nodes_unpacked[i]] == None:
-                    self.Q[nodes_unpacked[i]] = Q_value / 2
-                else:
-                    self.Q[nodes_unpacked[i]] += Q_value / 2
-                if self.Q[nodes_unpacked[i]+1] == None:
-                    self.Q[nodes_unpacked[i]+1] = Q_value / 2
-                else:
-                    self.Q[nodes_unpacked[i]+1] += Q_value / 2
+                self.Q[nodes_unpacked[i]] += Q_value / 2
+                self.Q[nodes_unpacked[i]+1] += Q_value / 2
             elif types_unpacked[i] == "convFace":   # Requires [h, T_inf] as input
                 Q_value = float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * self.A
+                self.Q[nodes_unpacked[i]] += Q_value
                 self.Convection[nodes_unpacked[i]] += float(values_unpacked[i][0]) * self.A
-                if self.Q[nodes_unpacked[i]] == None:
-                    self.Q[nodes_unpacked[i]] = Q_value
-                else:
-                    self.Q[nodes_unpacked[i]] += Q_value
             elif types_unpacked[i] == "convSurf":   # Requires [h, W_c, T_inf]  as input
                 Q_value = float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * float(values_unpacked[i][2]) * self.element_len[nodes_unpacked[i]]
-                self.Convection[nodes_unpacked[i]] += float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * self.element_len[nodes_unpacked[i]]
-                if self.Q[nodes_unpacked[i]] == None:
-                    self.Q[nodes_unpacked[i]] = Q_value / 2
-                else:
-                    self.Q[nodes_unpacked[i]] += Q_value / 2
-                if self.Q[nodes_unpacked[i]+1] == None:
-                    self.Q[nodes_unpacked[i]+1] = Q_value / 2
-                else:
-                    self.Q[nodes_unpacked[i]+1] += Q_value / 2
+                conv_value = float(values_unpacked[i][0]) * float(values_unpacked[i][1]) * self.element_len[nodes_unpacked[i]]           
+                self.Convection[nodes_unpacked[i]] += conv_value / 2
+                self.Convection[nodes_unpacked[i]+1] += conv_value / 2
+                self.Q[nodes_unpacked[i]] += Q_value / 2
+                self.Q[nodes_unpacked[i]+1] += Q_value / 2
     
         self.freeNodes = [int(i) for i in range(self.N) if i not in self.boundNodes]
 
@@ -103,15 +83,12 @@ class oneD:
             print(f'Convection vector: {self.Convection}')
 
     def solve(self):
-        solutionArray = self.Conductance
+        solutionArray = np.copy(self.Conductance)
         Q = self.Q
 
         if any(self.Convection) != 0:
             for i in range(len(self.Convection)):
                 solutionArray[i,i] += self.Convection[i]
-        
-        print(self.Convection)
-        print(solutionArray)
 
         for i in range(len(self.boundNodes)):
             solutionArray = np.delete(solutionArray, self.boundNodes[i] - i, axis=0)
@@ -136,25 +113,35 @@ class oneD:
         
         Q_sol = np.float64(self.Conductance) @ np.float64(T_sol)
 
+        # Ensure sum of Q is zero
+        if round(np.sum(Q_sol), 5)+0.5 != 0:
+            raise ValueError("Heat flux is non-conservative. Somethings gone wrong :(")
+
         return T_sol, Q_sol
 
 if __name__ == "__main__":
-    sim = oneD(k=0.2, A=200)
-    sim.geometry(L=120, N=4, verbose=False)
+    sim = oneD(k=0.1, A=1)
+    sim.geometry(L=0.4, N=5, verbose=False)
     sim.assemble_conductance(verbose=False)
-    convSurfProp = np.array([2e-4, 160, 30])
-    convFaceProp = np.array([2e-4, 30])
-    boundDict = {"nodes": [0,"1:3",3], "type": ["temp","flux","flux"], "value": [330,0,-200]}
-    sim.bound(boundDict, verbose=True)
+    convSurfProp = np.array([20, 0.1, 20])
+    convFaceProp = np.array([2, 20])
+    boundDict = {"nodes": [0,"0:4"], "type": ["temp","convSurf"], "value": [300,convSurfProp]}
+    sim.bound(boundDict, verbose=False)
     T, Q = sim.solve()
 
-    print(T)
-    print(Q)
+    #print(T)
+    #print(Q)
+
+    sum = 0
+    for i in range(len(Q)):
+        sum += Q[i]
 
     plt.plot(sim.x, T)
     plt.xlim(0,max(sim.x))
     plt.grid()
-    plt.show()
+    #plt.show()
+
+#[300.         206.86362437 151.09997362 121.55631759 112.32392509]
 
 """
 TO DO:
