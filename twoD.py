@@ -16,11 +16,13 @@ class twoD:
         self.nodes = np.array(list(range(self.N)))
         self.elements = elemental_nodes
 
-        self.A = np.zeros([len(self.elements)])
-        for i in range(len(self.elements)):
-            self.A[i] = 0.5 * ((max([self.x[element] for element in self.elements[i]])-min([self.x[element] for element in self.elements[i]])) *
-                               (max([self.y[element] for element in self.elements[i]])-min([self.y[element] for element in self.elements[i]])))
+        tris = nodal_coordinates[self.elements]
+        x1, y1 = tris[:,0,0], tris[:,0,1]
+        x2, y2 = tris[:,1,0], tris[:,1,1]
+        x3, y3 = tris[:,2,0], tris[:,2,1]
 
+        self.A = 0.5 * np.abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))
+            
     def assemble_conductance(self, verbose=False):
         self.Conductance = np.zeros([self.N, self.N])
         for element in range(len(self.elements)):
@@ -59,9 +61,9 @@ class twoD:
         elementTypes = elementDict_unpacked["type"]
         elementValues = elementDict_unpacked["value"]
 
-        self.T = np.full(shape=[self.N], fill_value=0, dtype=object)
-        self.Q = np.full(shape=[self.N], fill_value=0, dtype=object)
-        self.Convection = np.full(shape=[self.N], fill_value=0, dtype=object)
+        self.T = np.full(shape=[self.N], fill_value=0, dtype=float)
+        self.Q = np.full(shape=[self.N], fill_value=0, dtype=float)
+        self.Convection = np.full(shape=[self.N], fill_value=0, dtype=float)
         self.boundNodes = []
 
         for i in range(len(element)):
@@ -146,31 +148,29 @@ class twoD:
         return T_sol, Q_sol
 
 if __name__ == "__main__":
-    sim = twoD(k=2, t=1)
+    sim = twoD(k=600, t=0.1)
     nodes, elements = utils.mesh_tri(L=20, H=10, n_x=21, n_y=11)
     print(len(elements))
     sim.geometry(nodes, elements)
     sim.assemble_conductance(verbose=False)
-    #left = np.array([0, 4, 8])
-    #top = np.array([8, 9, 10, 11])
-    #right = np.array([11, 7, 3])
-    #bottom = np.array([0, 1, 2, 3])
-    left = np.array([0, 11, 22, 33, 44])
-    top = np.array([44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54])
-    right = np.array([10, 21, 32, 43, 54])
-    bottom = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    #left = np.array([0, 11, 22, 33, 44])
+    #top = np.array([44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54])
+    #right = np.array([10, 21, 32, 43, 54])
+    #bottom = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     left = np.array([0, 21, 42, 63, 84, 105, 126, 147, 168, 189, 210])
     right = np.array([20, 41, 62, 83, 104, 125, 146, 167, 188, 209, 230])
-    convParameters = np.array([1, 20])
-    elementDict = {"element": ["0:400"], "type": ["gen"], "value": [1]}
-    boundaryDict = {"boundary": [left, right], "type": ["conv", "conv"], "value": [convParameters, convParameters]}
+    top = np.int16(np.linspace(210, 230, 21))
+    bottom = np.int16(np.linspace(0, 20, 21))
+    convParameters = np.array([0.1, 20])
+    elementDict = {"element": [f"0:{len(sim.elements)}"], "type": ["gen"], "value": [10]}
+    boundaryDict = {"boundary": [left, top, right, bottom], "type": ["temp", "temp", "temp", "temp"], "value": [10, 10, 10, 10]}
     nodeDict = {"node": [], "type": [], "value": []}    
     sim.bound(nodeDict, boundaryDict, elementDict, verbose=True)
     T, Q = sim.solve()
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot_trisurf(sim.x, sim.y, T, cmap='viridis')
+    ax.plot_trisurf(sim.x, sim.y, T, cmap='inferno')
 
     plt.show()
 
