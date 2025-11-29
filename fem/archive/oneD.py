@@ -24,7 +24,7 @@ class oneD:
             self.elements[i, 0] = i
             self.elements[i, 1] = i+1
 
-        # Calculate element lenghts
+        # Calculate element lengths
         self.element_len = np.zeros([N-1])
         for i in range(self.N-1):
             self.element_len[i] = ((self.x[i+1] - self.x[i]))
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     sim.assemble_conductance(verbose=False)
     convFaceProp1 = np.array([2, 20])
     convFaceProp2 = np.array([2, 20])
-    boundDict = {"nodes": [0,"0:19",19], "type": ["convFace","gen","convFace"], "value": [convFaceProp1,10,convFaceProp2]}
+    boundDict = {"nodes": [0,"0:19",19], "type": ["convFace","gen","temp"], "value": [convFaceProp1,50,30]}
     sim.bound(boundDict, verbose=False)
     T, Q = sim.solve()
     plt.plot(sim.x, T)
