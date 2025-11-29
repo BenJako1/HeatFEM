@@ -11,7 +11,7 @@ with pygmsh.geo.Geometry() as geom:
     p1 = geom.add_point([0, 0, 0], mesh_size = ms)
     p2 = geom.add_point([2, 0, 0], mesh_size = ms)
     p3 = geom.add_point([2, 1, 0], mesh_size = ms)
-    p4 = geom.add_point([1, 1, 0], mesh_size = ms)
+    p4 = geom.add_point([1, 1, 0], mesh_size = ms/10)
     p5 = geom.add_point([1, 2, 0], mesh_size = ms)
     p6 = geom.add_point([0, 2, 0], mesh_size = ms)
 
@@ -43,14 +43,14 @@ sim.mesh = gmsh2D(nodes, elements)
 
 elementDict = {
     "element": [f"0:{len(elements)}"],
-    "type": ["gen"],
-    "value": [10]
+    "type": ["conv"],
+    "value": [np.array([0.1, 20])]
 }
 
 edgeDict = {
-    "edge": [leftBoundary],
-    "type": ["temp"],
-    "value": [10]
+    "edge": [leftBoundary, rightBoundary],
+    "type": ["temp", "conv"],
+    "value": [330, np.array([0.1, 20])]
 }
 
 nodeDict = {

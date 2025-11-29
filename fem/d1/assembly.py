@@ -1,63 +1,44 @@
 import numpy as np
 from .element import elemental_conductance
-from .element import convection_stiffness, convection_load
+from .element import *
 
-def assemble_1d(mesh, k, A, Q_existing=None, verbose=False):
-    N = mesh.N
+def assemble_1d(mesh, k, A, F_known=None):
+    K = np.zeros((mesh.N, mesh.N))
+    F = np.zeros(mesh.N)
 
-    # Global stiffness matrix
-    K = np.zeros((N, N))
+    if F_known is not None:
+        F = F_known
 
-    # Global force matrix
-    F = np.zeros(N)
-
-    # If explicit flux BCs exist, add them
-    if Q_existing is not None:
-        F += Q_existing
-
-    for e, (n1, n2) in enumerate(mesh.elements):
-        # Calculate element length
+    for e, nodes in enumerate(mesh.elements):
         Le = mesh.element_len[e]
 
-        # Generate elemental conductivity matrix
         Ke = elemental_conductance(k, A, Le)
-        K[n1:n2+1, n1:n2+1] += Ke
-    
-    if verbose:
-        print(f'Conductivity matrix:\n{K}')
-        print(f'Load vector: {F}')
+        K[np.ix_(nodes, nodes)] += Ke
     
     return K, F
 
-def assemble_nonphys(mesh, F, convNodes=None, convElems=None):
+def assemble_nonphys_0d(K, F, convBC=None):
+    if convBC is None:
+        convBC = {}
     
-    N = mesh.N
-
-    Kn = np.zeros((N, N))
-
-    # If there is not convection, create empty set
-    if convNodes is None:
-        convNodes = {}
-    if convElems is None:
-        convElems = {}
-
-    for e, (n1, n2) in enumerate(mesh.elements):
-        if e in convElems:
-            h, Tinf, area = convElems[e]
-
-            # convection stiffness/matrix
-            Kc = convection_stiffness(h, area)
-            Fc = convection_load(h, Tinf, area)
-
-            # Add elemental conductivity and flux to global
-            Kn[n1:n2+1, n1:n2+1] += Kc
-            F[n1:n2+1] += Fc
+    for nodes, h, area, T_inf in convBC:
+        K_conv = convection_stiffness_0d(h, area)
+        F_conv = convection_load_0d(h, area, T_inf)
+        
+        K[nodes,nodes] += K_conv
+        F[nodes] += F_conv
     
-    for n in mesh.nodes:
-        if n in convNodes:
-            h, Tinf, area = convNodes[n]
+    return K_conv, F_conv
 
-            Kn[n, n] += h * area
-            F[n] += h * Tinf * area
+def assemble_nonphys_1d(K, F, convBC=None):
+    if convBC is None:
+        convBC = {}
     
-    return Kn, F
+    for nodes, h, area, T_inf in convBC:
+        K_conv = convection_stiffness_1d(h, area)
+        F_conv = convection_load_1d(h, area, T_inf)
+        
+        K[np.ix_(nodes, nodes)] += K_conv
+        F[nodes] += F_conv
+    
+    return K_conv, F_conv

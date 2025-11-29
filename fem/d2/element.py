@@ -8,9 +8,17 @@ def element_B_matrix(x, y, A):
 def elemental_conductance(k, t, A, B):
     return k * t * A * (B.T @ B)
 
-def convection_stiffness(h, t, Le):
-    return h * t * Le / 6 * np.array([[2, 1],
-                                      [1, 2]])
+def convection_stiffness_1d(h, A):
+    return h * A / 6 * np.array([[2, 1],
+                                 [1, 2]])
 
-def convection_load(h, t, Tinf, Le):
-    return h * t * Tinf * Le / 2 * np.array([1, 1])
+def convection_load_1d(h, A, Tinf):
+    return h * A * Tinf / 2 * np.array([1, 1])
+
+def convection_stiffness_2d(h, A):
+    return h * A / 12 * np.array([[2, 1, 1],
+                                  [1, 2, 1],
+                                  [1, 1, 2]])
+
+def convection_load_2d(h, A, Tinf):
+    return h * Tinf * A / 3 * np.array([1, 1, 1])

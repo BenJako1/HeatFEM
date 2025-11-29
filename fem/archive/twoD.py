@@ -153,14 +153,15 @@ if __name__ == "__main__":
     print(len(elements))
     sim.geometry(nodes, elements)
     sim.assemble_conductance(verbose=False)
-    #left = np.array([0, 11, 22, 33, 44])
-    #top = np.array([44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54])
-    #right = np.array([10, 21, 32, 43, 54])
-    #bottom = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    left = np.array([0, 21, 42, 63, 84, 105, 126, 147, 168, 189, 210])
-    right = np.array([20, 41, 62, 83, 104, 125, 146, 167, 188, 209, 230])
-    top = np.int16(np.linspace(210, 230, 21))
-    bottom = np.int16(np.linspace(0, 20, 21))
+    left = np.array([0, 11, 22, 33, 44])
+    top = np.array([44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54])
+    right = np.array([10, 21, 32, 43, 54])
+    bottom = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    #left = np.array([0, 21, 42, 63, 84, 105, 126, 147, 168, 189, 210])
+    #right = np.array([20, 41, 62, 83, 104, 125, 146, 167, 188, 209, 230])
+    #top = np.int16(np.linspace(210, 230, 21))
+    #bottom = np.int16(np.linspace(0, 20, 21))
+
     convParameters = np.array([0.1, 20])
     elementDict = {"element": [f"0:{len(sim.elements)}"], "type": ["gen"], "value": [10]}
     boundaryDict = {"boundary": [left, top, right, bottom], "type": ["conv", "temp", "conv", "temp"], "value": [convParameters, 10, convParameters, 10]}

@@ -49,9 +49,20 @@ def unpack_dict(input_dict, ):
     return unpacked
 
 def edge_length(node1, node2):
-    x1, y1 = node1
-    x2, y2 = node2
-    return np.sqrt((x2-x1)**2 + (y2-y1)**2)
+    if len(node1) and len(node2) == 3:
+        x1, y1, z1 = node1
+        x2, y2, z2 = node2
+        return np.sqrt((x2-x1)**2 + (y2-y1)**2 + (z2-z1)**2)
+    elif len(node1) and len(node2) == 2:
+        x1, y1 = node1
+        x2, y2 = node2
+        return np.sqrt((x2-x1)**2 + (y2-y1)**2)
+    elif len(node1) and len(node2) == 1:
+        x1 = node1
+        x2 = node2
+        return abs(x2-x1)
+    else:
+        raise ValueError("Node input error, coordinate lengths must be the same and in 1, 2 or 3 dimensions.")
 
 if __name__ == "__main__":
     pass

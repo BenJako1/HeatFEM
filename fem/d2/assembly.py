@@ -1,9 +1,13 @@
 import numpy as np
-from .element import element_B_matrix, elemental_conductance, convection_stiffness, convection_load
+from .element import *
 
-def assemble_2d(mesh, k, t):
-    N = mesh.N
-    K = np.zeros((N, N))
+def assemble_2d(mesh, k, t, F_known=None):
+    K = np.zeros((mesh.N, mesh.N))
+    F = np.zeros(mesh.N)
+
+    if F_known is not None:
+        F = F_known
+
     for e, nodes in enumerate(mesh.elements):
         x = mesh.x[nodes]
         y = mesh.y[nodes]
@@ -11,34 +15,33 @@ def assemble_2d(mesh, k, t):
         Ke = elemental_conductance(k, t, mesh.A[e], B)
 
         K[np.ix_(nodes, nodes)] += Ke
-
-        """K[mesh.elements[e][0],mesh.elements[e][0]] += Ke[0,0]
-        K[mesh.elements[e][1],mesh.elements[e][0]] += Ke[1,0]
-        K[mesh.elements[e][2],mesh.elements[e][0]] += Ke[2,0]
-        K[mesh.elements[e][0],mesh.elements[e][1]] += Ke[0,1]
-        K[mesh.elements[e][1],mesh.elements[e][1]] += Ke[1,1]
-        K[mesh.elements[e][2],mesh.elements[e][1]] += Ke[2,1]
-        K[mesh.elements[e][0],mesh.elements[e][2]] += Ke[0,2]
-        K[mesh.elements[e][1],mesh.elements[e][2]] += Ke[1,2]
-        K[mesh.elements[e][2],mesh.elements[e][2]] += Ke[2,2]"""
     
-    return K
+    return K, F
 
-def assemble_nonphys(mesh, F, t, convBC=None):
+def assemble_nonphys_1d(K, F, convBC=None):
+    if convBC is None:
+        convBC = {}
+
+    for nodes, h, area, T_inf in convBC:
+        K_conv = convection_stiffness_1d(h, area)
+        F_conv = convection_load_1d(h, area, T_inf)
+        
+        K[np.ix_(nodes, nodes)] += K_conv
+        F[nodes] += F_conv
     
-    N = mesh.N
+    return K, F
 
-    Kn = np.zeros((N, N))
+def assemble_nonphys_2d(K, F, convBC=None):
 
     # If there is not convection, create empty set
     if convBC is None:
         convBC = {}
 
-    for nodes, h, T_inf, length in convBC:
-        Kc = convection_stiffness(h, t, length)
-        Fc = convection_load(h, t, T_inf, length)
+    for nodes, h, area, T_inf in convBC:
+        K_conv = convection_stiffness_2d(h, area)
+        F_conv = convection_load_2d(h, area, T_inf)
         
-        Kn[np.ix_(nodes, nodes)] += Kc
-        F[nodes] += Fc
+        K[np.ix_(nodes, nodes)] += K_conv
+        F[nodes] += F_conv
     
-    return Kn, F
+    return K, F

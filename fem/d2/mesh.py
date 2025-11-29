@@ -35,7 +35,7 @@ class TriMesh2D:
 
                 self.elements[k, :] = [A, B, C]
                 k += 1
-                self.elements[k, :] = [A, C, D]
+                self.elements[k, :] = [A, D, C] #Altered from ACD for testing
                 k += 1
         
         tris = self.nodes[self.elements]
