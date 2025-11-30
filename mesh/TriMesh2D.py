@@ -48,6 +48,62 @@ class TriMesh2D:
         x3, y3 = tris_x[:,2], tris_y[:,2]
 
         self.A = 0.5 * np.abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))
+    
+    def boundaryEdge(self, x_in=None, y_in=None, z_in=None, tol=1e-8):
+        """
+        Vectorised detection of triangle edges lying on a given axis.
+        Only edges with both nodes on the axis are returned.
+
+        Parameters
+        ----------
+        mesh : object
+            Must have mesh.elements (Ne x 4) and mesh.x, mesh.y, mesh.z arrays.
+        x_in, y_in, z_in : float or None
+            Axis coordinates.
+        tol : float
+            Tolerance for floating point comparison.
+
+        Returns
+        -------
+        boundary_faces : np.ndarray
+            Array of shape (Nfaces, 3) containing node indices of boundary faces.
+        """
+
+        # 3 edges per triangle
+        tri_edges = np.array([
+            [0, 1],
+            [0, 2],
+            [1, 2]
+        ])
+
+        # Expand element nodes to faces
+        # shape (Ne, 4 faces, 3 nodes per face)
+        all_edges = self.elements[:, tri_edges]
+
+        # Flatten to (Ne*4, 3)
+        flat_edges = all_edges.reshape(-1, 2)
+
+        # Gather coordinates of each face
+        x = self.x[flat_edges]  # shape (Ne*4, 3)
+        y = self.y[flat_edges]
+        z = self.z[flat_edges]
+
+        # Start with all True mask
+        mask = np.ones(len(flat_edges), dtype=bool)
+
+        if x_in is not None:
+            mask &= np.all(np.abs(x - x_in) < tol, axis=1)
+        if y_in is not None:
+            mask &= np.all(np.abs(y - y_in) < tol, axis=1)
+        if z_in is not None:
+            mask &= np.all(np.abs(z - z_in) < tol, axis=1)
+
+        # Select faces that satisfy plane condition
+        boundary_faces = flat_edges[mask]
+
+        return boundary_faces
+
+
 
 class gmsh2D:
     def __init__(self, nodes, elements):

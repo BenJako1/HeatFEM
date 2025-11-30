@@ -1,7 +1,7 @@
 import numpy as np
 import pyvista as pv
 
-def visualise_tet_mesh(mesh, T, show_edges=True, clim=None):
+def visualise_temp3D(mesh, T, show_edges=True, clim=None):
     """
     Visualise tetrahedral mesh with temperature data.
     

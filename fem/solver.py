@@ -1,5 +1,5 @@
 from fem.common.solver_base import SolverBase
-from fem.common.boundary import Boundary
+from fem.boundary import Boundary
 from .assemble import assemble
 import numpy as np
 

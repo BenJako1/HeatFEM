@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 
-def plot_surface(mesh, T, cmap='inferno'):
+def plot_temp2D(mesh, T, cmap='inferno'):
     tri = mtri.Triangulation(mesh.x, mesh.y, mesh.elements)
 
     fig = plt.figure()

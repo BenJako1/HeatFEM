@@ -5,8 +5,8 @@ class SolverBase:
         raise NotImplementedError
 
     def solve(self):
-        K = np.copy(self.K_sol)
-        Q = np.copy(self.Q_sol)
+        K = self.K_sol.copy()
+        Q = self.Q_sol.copy()
 
         self.boundNodes = np.sort(np.unique(self.boundNodes))
         self.freeNodes = np.array([int(i) for i in range(self.mesh.N) if i not in self.boundNodes])

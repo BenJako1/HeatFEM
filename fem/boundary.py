@@ -1,5 +1,5 @@
 import numpy as np
-from .utils import edge_length, tri_area
+from .common.utils import edge_length, tri_area
 
 class Boundary:
     def __init__(self, sim):

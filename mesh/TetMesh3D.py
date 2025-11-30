@@ -117,8 +117,6 @@ class TetMesh3D:
             [1, 2, 3]
         ])
 
-        Ne = self.elements.shape[0]
-
         # Expand element nodes to faces
         # shape (Ne, 4 faces, 3 nodes per face)
         all_faces = self.elements[:, tet_faces]

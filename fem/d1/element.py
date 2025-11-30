@@ -1,7 +1,7 @@
 import numpy as np
 
 def element_B_matrix(x, y, z):
-    return None
+    return 1
 
 def get_element_geometry(sim, e):
     return {

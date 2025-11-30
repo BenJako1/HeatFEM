@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def plot_temperature(mesh, T):
+def plot_temp1D(mesh, T):
     plt.plot(mesh.x, T)
     plt.xlim(min(mesh.x), max(mesh.x))
     plt.grid()
