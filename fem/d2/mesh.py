@@ -52,6 +52,7 @@ class gmsh2D:
         self.N = len(nodes)
         self.x = nodes[:,0]
         self.y = nodes[:,1]
+        self.nodes = nodes
         self.elements = elements
 
         tris_x, tris_y = self.x[self.elements], self.y[self.elements]

@@ -16,9 +16,12 @@ class Boundary:
         self.sim.boundNodes.extend(nodes.tolist())
     
     def apply_temp1d(self, edges, temp):
-        self.sim.T[edges] = temp
-        for node in edges:
-                self.sim.boundNodes.append(node)
+        nodes = edges.flatten()
+        self.apply_temp0d(nodes, temp)
+
+    def apply_temp2d(self, faces, temp):
+        nodes = faces.flatten()
+        self.apply_temp0d(nodes, temp)
     
     def apply_gen1d(self, edges, A, Q_gen):
         coords = self.sim.mesh.nodes[edges]

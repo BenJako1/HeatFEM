@@ -1,7 +1,20 @@
-from fem.common.utils import edge_length
+import numpy as np
 
-e = [1, 2, 3]
+nodes = np.array([[0, 0, 0],
+                  [1, 0, 0],
+                  [0, 1, 0],
+                  [0, 0, 1]])
 
-n = 1
+x1, y1, z1 = nodes[0]
+x2, y2, z2 = nodes[1]
+x3, y3, z3 = nodes[2]
+x4, y4, z4 = nodes[3]
 
-print([n])
+A = np.array([[1, x1, y1, z1],
+              [1, x2, y2, z2],
+              [1, x3, y3, z3],
+              [1, x4, y4, z4]])
+
+Ainv = np.linalg.inv(A)
+
+print(Ainv)
