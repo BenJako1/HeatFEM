@@ -1,11 +1,12 @@
 from .common.solver_base import SolverBase
 from .boundary import Boundary
 from .assemble import assemble
+from .property import Property
 
 class HeatSolver(SolverBase):
-    def __init__(self, mesh, k, **params):
-        self.k = k
+    def __init__(self, mesh, **params):
         self.mesh = mesh
+        self.property = Property(self)
         self.boundary = Boundary(self)
 
         self.__dict__.update(params)

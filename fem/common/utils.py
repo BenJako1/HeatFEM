@@ -43,3 +43,37 @@ def tri_area(nodes):
     area = 0.5 * np.linalg.norm(cross_prod, axis=-1)
 
     return area
+
+def tet_volume(nodes):
+    """
+    Compute tetrahedron volumes (vectorised).
+
+    Parameters
+    ----------
+    nodes : array_like
+        Shape (4,3) for one tet or (N,4,3) for many tets.
+        nodes[:, :] gives coordinates of the 4 vertices.
+
+    Returns
+    -------
+    volume : float or ndarray
+        Volume(s) of the tetrahedron(s).
+    """
+    nodes = np.asarray(nodes)
+
+    # Ensure array shape is (N,4,3)
+    if nodes.ndim == 2:
+        nodes = nodes[None, ...]   # convert (4,3) → (1,4,3)
+
+    # Compute the edge vectors for all elements
+    v1 = nodes[:, 1] - nodes[:, 0]
+    v2 = nodes[:, 2] - nodes[:, 0]
+    v3 = nodes[:, 3] - nodes[:, 0]
+
+    # Compute determinant for each tetrahedron
+    dets = np.einsum('ij,ij->i', np.cross(v1, v2), v3)
+
+    # Volume = |det| / 6
+    vol = np.abs(dets) / 6.0
+
+    return vol if vol.size > 1 else vol[0]

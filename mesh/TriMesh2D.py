@@ -1,4 +1,5 @@
 import numpy as np
+from fem.common.utils import tri_area
 
 class TriMesh2D:
     def __init__(self, Lx, Ly, nx, ny):
@@ -42,12 +43,7 @@ class TriMesh2D:
                 self.elements[k, :] = [A, D, C] #Altered from ACD for testing
                 k += 1
         
-        tris_x, tris_y = self.x[self.elements], self.y[self.elements]
-        x1, y1 = tris_x[:,0], tris_y[:,0]
-        x2, y2 = tris_x[:,1], tris_y[:,1]
-        x3, y3 = tris_x[:,2], tris_y[:,2]
-
-        self.A = 0.5 * np.abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))
+        self.A = tri_area(self.nodes[self.elements])
     
     def boundaryEdge(self, x_in=None, y_in=None, z_in=None, tol=1e-8):
         """
@@ -102,20 +98,3 @@ class TriMesh2D:
         boundary_faces = flat_edges[mask]
 
         return boundary_faces
-
-
-
-class gmsh2D:
-    def __init__(self, nodes, elements):
-        self.N = len(nodes)
-        self.x = nodes[:,0]
-        self.y = nodes[:,1]
-        self.nodes = nodes
-        self.elements = elements
-
-        tris_x, tris_y = self.x[self.elements], self.y[self.elements]
-        x1, y1 = tris_x[:,0], tris_y[:,0]
-        x2, y2 = tris_x[:,1], tris_y[:,1]
-        x3, y3 = tris_x[:,2], tris_y[:,2]
-
-        self.A = 0.5 * np.abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2))

@@ -4,7 +4,6 @@ class LineMesh1D:
     def __init__(self, L, N):
         self.type = "1D"
 
-        self.L = L
         self.N = N
 
         # Generate nodal indices and x-coordinates lists

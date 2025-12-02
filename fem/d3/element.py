@@ -19,9 +19,11 @@ def element_B_matrix(x, y, z):
 
 def get_element_geometry(sim, e):
     return {
+            "k": sim.k[e],
             "V": sim.mesh.V[e]
            }
 
-def elemental_conductance(B, k, geom):
+def elemental_conductance(B, geom):
+    k = geom["k"]
     V = geom["V"]
     return k * V * (B.T @ B)

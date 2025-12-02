@@ -14,7 +14,7 @@ def assemble(sim):
 
         B = element.element_B_matrix(x, y, z)
         geom = element.get_element_geometry(sim, e)
-        Ke = element.elemental_conductance(B, sim.k, geom)
+        Ke = element.elemental_conductance(B, geom)
 
         K[np.ix_(nodes, nodes)] += Ke
 

@@ -1,4 +1,5 @@
 import numpy as np
+from fem.common.utils import tet_volume
 
 class TetMesh3D:
     def __init__(self, Lx, Ly, Lz, nx, ny, nz):
@@ -67,27 +68,7 @@ class TetMesh3D:
                     self.elements[count, :] = [B, D, E, G]
                     count += 1
         
-        # Extract node coordinates for each tet
-        x = self.x[self.elements]
-        y = self.y[self.elements]
-        z = self.z[self.elements]
-
-        # Build edge vectors v2-v1, v3-v1, v4-v1 for all elements
-        v21 = np.column_stack((x[:,1] - x[:,0],
-                            y[:,1] - y[:,0],
-                            z[:,1] - z[:,0]))
-
-        v31 = np.column_stack((x[:,2] - x[:,0],
-                            y[:,2] - y[:,0],
-                            z[:,2] - z[:,0]))
-
-        v41 = np.column_stack((x[:,3] - x[:,0],
-                            y[:,3] - y[:,0],
-                            z[:,3] - z[:,0]))
-
-        # Stack into a batch of 3×3 matrices: shape (Ne, 3, 3)
-        M = np.stack((v21, v31, v41), axis=1)
-        self.V = np.abs(np.linalg.det(M)) / 6.0
+        self.V = tet_volume(self.nodes[self.elements])
     
     def boundarySurface(self, x_in=None, y_in=None, z_in=None, tol=1e-8):
         """

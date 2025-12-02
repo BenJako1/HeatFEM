@@ -11,6 +11,11 @@ bottom = mesh.boundarySurface(z_in=0)
 
 # Create simulation object
 sim = HeatSolver(mesh, k=0.2)
+
+# Assign properties
+sim.property.k(0.2)
+sim.property.t(1.25)
+
 # Assemble matrices
 sim.assemble()
 
