@@ -1,11 +1,11 @@
 from .mesh_base import BaseMesh
 import numpy as np
-from fem.common.utils import tri_area
+from fem.common.utils import quad_area
 
-class TriMesh2D(BaseMesh):
+class QuadMesh2D(BaseMesh):
     def __init__(self, Lx, Ly, nx, ny):
         """
-        Generation of a rectangular mesh in z=0 with triangular elements.
+        Generation of a rectangular mesh in z=0 with quadrilateral elements.
 
         Parameters:
             Lx, Ly : int, float
@@ -17,7 +17,7 @@ class TriMesh2D(BaseMesh):
             mesh : object
         """
 
-        self.type = "T3"
+        self.type = "Q4"
 
         self.N = nx*ny
 
@@ -36,7 +36,7 @@ class TriMesh2D(BaseMesh):
         self.nodes = np.vstack((self.x, self.y, self.z)).T
 
         # Generate elements from quads
-        self.elements = np.zeros(((nx - 1)*(ny - 1)*2, 3), dtype=int)
+        self.elements = np.zeros(((nx - 1)*(ny - 1), 4), dtype=int)
 
         k = 0
         for j in range(ny - 1):
@@ -46,15 +46,9 @@ class TriMesh2D(BaseMesh):
                 A = j*nx + i
                 B = A + 1
                 D = A + nx
-                C = D + 1     # (j+1)*nx + (i+1)
+                C = D + 1
 
-                # Pattern 2 (upper-left → lower-right diagonal)
-                # tri1 = (A, B, C)
-                # tri2 = (A, C, D)
-
-                self.elements[k, :] = [A, B, C]
-                k += 1
-                self.elements[k, :] = [A, C, D]
+                self.elements[k, :] = [A, B, C, D]
                 k += 1
         
-        self.A = tri_area(self.nodes[self.elements])
+        self.A = quad_area(self.nodes[self.elements])

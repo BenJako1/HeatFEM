@@ -1,4 +1,4 @@
-from fem.solver import HeatSolver
+from fem.solver.steadySolver import steadySolver
 from mesh.LineMesh1D import LineMesh1D
 
 k = 0.2
@@ -13,7 +13,7 @@ mesh = LineMesh1D(120, 4)
 wall = 0
 free = mesh.N - 1
 
-sim = HeatSolver(mesh, k=k, A=A)
+sim = steadySolver(mesh, k=k, A=A)
 sim.assemble()
 
 print(sim.K)

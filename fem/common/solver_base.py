@@ -1,9 +1,6 @@
 import numpy as np
 
 class SolverBase:
-    def apply_boundary_conditions(self, *args, **kwargs):
-        raise NotImplementedError
-
     def solve(self):
         K = self.K_sol.copy()
         Q = self.Q_sol.copy()

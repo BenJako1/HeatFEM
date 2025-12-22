@@ -2,78 +2,119 @@ import numpy as np
 
 def edge_length(nodes):
     """
-    nodes: array of shape (..., 2, 3)
-       nodes[...,0,:] = first node of edge
-       nodes[...,1,:] = second node of edge
+    Compute length of edge connecting 2 nodes.
+
+    Parameters:
+        nodes: array of shape (..., 2, 3)
+            nodes[...,0,:] = first node of edge
+            nodes[...,1,:] = second node of edge
 
     Returns:
         lengths: array of shape (...)
     """
 
-    p0 = nodes[..., 0, :]
-    p1 = nodes[..., 1, :]
+    A = nodes[..., 0, :]
+    B = nodes[..., 1, :]
 
-    diff = p1 - p0
+    diff = B - A
 
-    return np.linalg.norm(diff, axis=-1)
+    length = np.linalg.norm(diff, axis=-1)
+
+    return length
 
 def tri_area(nodes):
     """
-    nodes: shape (..., 3, 3)
-        For each triangle:
-        nodes[i, j] = [x_j, y_j, z_j] for j = 0,1,2
+    Compute the area of a triangle defined by 3 points.
+
+    Parameters:
+        nodes: shape (..., 3, 3)
+            For each triangle:
+            nodes[i, j] = [x_j, y_j, z_j] for j = 0,1,2
 
     Returns:
         areas: shape (...,)
         Area of each triangle.
     """
 
-    p0 = nodes[..., 0, :]
-    p1 = nodes[..., 1, :]
-    p2 = nodes[..., 2, :]
+    A = nodes[..., 0, :]
+    B = nodes[..., 1, :]
+    C = nodes[..., 2, :]
 
-    # Edge vectors
-    v1 = p1 - p0
-    v2 = p2 - p0
+    AB = B - A
+    AC = C - A
 
-    # Cross product of edges
-    cross_prod = np.cross(v1, v2)
+    cross = np.cross(AB, AC)
 
-    # Triangle area = 0.5 * norm of cross product
-    area = 0.5 * np.linalg.norm(cross_prod, axis=-1)
+    area = 0.5 * np.linalg.norm(cross, axis=-1)
+
+    return area
+
+def quad_area(nodes):
+    """
+    Compute the area of a quadrilateral defined by 4 points.
+
+    Parameters:
+        nodes: shape (..., 3, 4)
+            For each quad:
+            nodes[i, j] = [x_j, y_j, z_j] for j = 0,1,2
+
+    Returns:
+        areas: shape (...,)
+        Area
+    """
+
+    A = nodes[..., 0, :]
+    B = nodes[..., 1, :]
+    C = nodes[..., 2, :]
+    D = nodes[..., 3, :]
+
+    AC = C - A
+    BD = D - B
+
+    cross = np.cross(AC, BD)
+
+    area = 0.5 * np.linalg.norm(cross, axis=-1)
 
     return area
 
 def tet_volume(nodes):
     """
-    Compute tetrahedron volumes (vectorised).
+    Compute volume of a tetrahedron defined by 4 nodes.
 
-    Parameters
-    ----------
-    nodes : array_like
-        Shape (4,3) for one tet or (N,4,3) for many tets.
-        nodes[:, :] gives coordinates of the 4 vertices.
+    Parameters:
+        nodes : array_like
+            Shape (4,3) for one tet or (N,4,3) for many tets.
+            nodes[:, :] gives coordinates of the 4 vertices.
 
-    Returns
-    -------
-    volume : float or ndarray
-        Volume(s) of the tetrahedron(s).
+    Returns:
+        volume : float or ndarray
+            Volume(s) of the tetrahedron(s).
     """
     nodes = np.asarray(nodes)
 
-    # Ensure array shape is (N,4,3)
     if nodes.ndim == 2:
-        nodes = nodes[None, ...]   # convert (4,3) → (1,4,3)
+        nodes = nodes[None, ...]
 
-    # Compute the edge vectors for all elements
-    v1 = nodes[:, 1] - nodes[:, 0]
-    v2 = nodes[:, 2] - nodes[:, 0]
-    v3 = nodes[:, 3] - nodes[:, 0]
+    A = nodes[:, 0]
+    B = nodes[:, 1]
+    C = nodes[:, 2]
+    D = nodes[:, 3]
+    
+    AB = B - A
+    AC = C - A
+    AD = D - A
 
-    # Compute determinant for each tetrahedron
-    dets = np.einsum('ij,ij->i', np.cross(v1, v2), v3)
+    dets = np.sum(np.cross(AB, AC) * AD, axis=1)
 
-    # Volume = |det| / 6
     vol = np.abs(dets) / 6.0
 
-    return vol if vol.size > 1 else vol[0]
+    return vol
+
+if __name__ == "__main__":
+    nodes = np.array([[0, 0, 0],
+                       [1, 0, 0],
+                       [2, 1, 0],
+                       [0, 1, 0]])
+
+    A = quad_area(nodes)
+    print(A)

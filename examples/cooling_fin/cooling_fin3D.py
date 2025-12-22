@@ -1,4 +1,4 @@
-from fem.solver import HeatSolver
+from fem.solver.steadySolver import steadySolver
 from mesh.TetMesh3D import TetMesh3D
 
 # Create mesh object
@@ -10,7 +10,7 @@ top = mesh.boundarySurface(z_in=1.25)
 bottom = mesh.boundarySurface(z_in=0)
 
 # Create simulation object
-sim = HeatSolver(mesh, k=0.2)
+sim = steadySolver(mesh, k=0.2)
 
 # Assign properties
 sim.property.k(0.2)

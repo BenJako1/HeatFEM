@@ -10,13 +10,13 @@ class GenericMesh:
         self.nodes = np.array(nodes)
         self.elements = np.array(elements)
 
-        self.x = self.nodes[:][0]
-        self.y = self.nodes[:][1]
-        self.z = self.nodes[:][2]
+        self.x = self.nodes[:, 0]
+        self.y = self.nodes[:, 1]
+        self.z = self.nodes[:, 2]
 
-        if self.type == "1D":
+        if self.type == "L2":
             self.L = edge_length(self.nodes[self.elements])
-        if self.type == "2D":
+        if self.type == "T3":
             self.A = tri_area(self.nodes[self.elements])
-        if self.type == "3D":
+        if self.type == "TH4":
             self.V = tet_volume(self.nodes[self.elements])

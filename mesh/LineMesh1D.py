@@ -1,8 +1,22 @@
+from .mesh_base import BaseMesh
 import numpy as np
 
-class LineMesh1D:
+class LineMesh1D(BaseMesh):
     def __init__(self, L, N):
-        self.type = "1D"
+        """
+        Generation of a line mesh along y=z=0 with line elements.
+
+        Parameters:
+            L : int, float
+                Length of line.
+            N : int
+                Number of nodes.
+
+        Returns:
+            mesh : object
+        """
+
+        self.type = "L2"
 
         self.N = N
 

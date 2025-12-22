@@ -2,25 +2,26 @@ from fem.solver.steadySolver import steadySolver
 from mesh.LineMesh1D import LineMesh1D
 
 # Create mesh object
-mesh = LineMesh1D(120, 20)
+mesh = LineMesh1D(1, 50)
 # Define boundaries
-wall = 0
-free = mesh.N - 1
+x0 = 0
+x1 = mesh.N - 1
 
 # Create simulation object
 sim = steadySolver(mesh)
 
 # Assign properties
-sim.property.k(0.2)
-sim.property.A(200)
+sim.property.k(20)
+area_func = lambda x: x**0.5 + 1
+print(len(mesh.x))
+sim.property.A(area_func(mesh.x))
 
 # Assemble matrices
 sim.assemble()
 
 # Apply boundary conditions
-sim.boundary.apply_temp0d(wall, 330)
-sim.boundary.apply_conv1d(sim.mesh.elements, 2e-4, 320, 30)
-sim.boundary.apply_conv0d(free, 2e-4, sim.A[0], 30)
+sim.boundary.apply_temp0d(x0, 100)
+sim.boundary.apply_conv0d(x1, 1e3, 20)
 
 # Solve
 T, Q = sim.solve()

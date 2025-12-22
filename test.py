@@ -1,9 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
-e = np.array([[1, 2],
-              [2, 3],
-              [2, 4]])
+A = lambda x: np.sqrt(x) + 1
 
-arr = np.shape([3, 1])
+x = np.array([1, 2, 3, 4])
 
-print(arr)
+print(A(x))

@@ -1,5 +1,6 @@
 import numpy as np
-from .common.utils import edge_length, tri_area
+from fem.common.utils import edge_length, tri_area, quad_area
+
 
 class Boundary:
     def __init__(self, sim):
@@ -41,16 +42,21 @@ class Boundary:
 
             self.sim.Q_sol[face] += f
 
-    def apply_conv0d(self, nodes, h, A, T_inf):
-        k = h * A
-        f = h * A * T_inf
+    def apply_conv0d(self, nodes, h, T_inf):
+        A = self.sim.A
 
-        self.sim.K_sol[nodes, nodes] += k
-        self.sim.Q_sol[nodes] += f
+        for i, node in enumerate(nodes):
+            k = h * A[i]
+            f = h * A[i] * T_inf
+
+            self.sim.K_sol[node, node] += k
+            self.sim.Q_sol[node] += f
+
     
-    def apply_conv1d(self, edges, h, t, T_inf):
+    def apply_conv1d(self, edges, h, T_inf):
         coords = self.sim.mesh.nodes[edges]
 
+        t = np.average(self.sim.t[edges], axis=1)
         A = t * edge_length(coords)
 
         for i, edge in enumerate(edges):
@@ -64,13 +70,37 @@ class Boundary:
     def apply_conv2d(self, faces, h, T_inf):
         coords = self.sim.mesh.nodes[faces]
 
-        A = tri_area(coords)
+        # If tri element
+        if faces.shape[1] == 3:
+            A = tri_area(coords)
+            base_arr = np.array([[2, 1, 1],
+                                 [1, 2, 1],
+                                 [1, 1, 2]])
 
-        for i, face in enumerate(faces):
-            k = (h * A[i] / 12) * np.array([[2, 1, 1],
-                                            [1, 2, 1],
-                                            [1, 1, 2]])
-            f = (h * T_inf * A[i] / 3) * np.ones((3))
+            for i, face in enumerate(faces):
+                k = (h * A[i] / 12) * base_arr
+                f = (h * T_inf * A[i] / 3) * np.ones((3))
 
-            self.sim.K_sol[np.ix_(face, face)] += k
-            self.sim.Q_sol[face] += f
+                self.sim.K_sol[np.ix_(face, face)] += k
+                self.sim.Q_sol[face] += f
+
+        # If quad element
+        elif faces.shape[1] == 4:
+            for i, face in enumerate(faces):
+                coords = self.sim.mesh.nodes[face]
+                k, f = self.sim.element.conv2d(coords, h, T_inf)
+
+                self.sim.K_sol[np.ix_(face, face)] += k
+                self.sim.Q_sol[face] += f
+
+if __name__ == "__main__":
+    from fem.solver.steadySolver import steadySolver
+    from mesh.GenericMesh import GenericMesh
+    nodes = np.array([[0, 0, 0],
+                       [1, 0, 0],
+                       [1, 1, 0],
+                       [0, 1, 0]])
+    elements = np.array([[0, 1, 2, 3]])
+    mesh = GenericMesh(nodes, elements, "Q4")
+    sim = steadySolver(mesh)
+    sim.boundary.apply_conv2d(elements, 1, 1)
