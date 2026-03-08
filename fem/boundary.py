@@ -7,7 +7,7 @@ class Boundary:
         self.sim = sim
         self.sim.boundNodes = []
     
-    def apply_temp0d(self, nodes, temp):
+    def apply_temp(self, nodes, temp):
         if np.isscalar(nodes):
             nodes = np.array([nodes])
         else:
@@ -15,12 +15,6 @@ class Boundary:
     
         self.sim.T[nodes] = temp
         self.sim.boundNodes.extend(nodes.tolist())
-    
-    def apply_temp1d(self, edges, temp):
-        self.apply_temp0d(edges, temp)
-
-    def apply_temp2d(self, faces, temp):
-        self.apply_temp0d(faces, temp)
     
     def apply_gen1d(self, edges, A, Q_gen):
         coords = self.sim.mesh.nodes[edges]

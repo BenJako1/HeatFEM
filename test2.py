@@ -44,6 +44,7 @@ if __name__ == "__main__":
                        [1, -1, 0],
                        [1, 1, 0],
                        [-1, 1, 0]])
+    
     res = quadrature(natural_nodes, k=1, t=1)
 
     a = (1-1/np.sqrt(3))**2

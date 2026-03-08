@@ -4,6 +4,9 @@ class Property():
     def __init__(self, sim):
         self.sim = sim
     
+    # k doesnt make sense being a nodal value because then we cant have defined border between neighboring elements
+    # A and t doent make sense being elemental since that would lead to disctete geometry
+    
     def k(self, values, elements=None):
         num_elems = len(self.sim.mesh.elements)
         self.sim.k = self._assign_property(values, elements, num_elems)

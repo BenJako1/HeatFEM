@@ -24,5 +24,5 @@ sim.boundary.apply_conv1d(free, 1, sim.t[0], 10)
 T, Q = sim.solve()
 
 # Visualise
-from postprocess.plot_countour import plot_contour
+from postprocess.plot_contour import plot_contour
 plot_contour(mesh, T, isolines=False)

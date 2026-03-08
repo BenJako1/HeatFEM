@@ -20,7 +20,7 @@ sim.property.t(1.25)
 sim.assemble()
 
 # Apply boundary conditions
-sim.boundary.apply_temp2d(wall, 330)
+sim.boundary.apply_temp(wall, 330)
 sim.boundary.apply_conv2d(free, 2e-4, 30)
 sim.boundary.apply_conv2d(top, 2e-4, 30)
 sim.boundary.apply_conv2d(bottom, 2e-4, 30)

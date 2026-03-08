@@ -54,8 +54,6 @@ if __name__ == "__main__":
 
     gp = 1/np.sqrt(3)
     gauss_pts = np.array([[-gp, -gp], [gp, -gp], [gp,  gp], [-gp,  gp]])
-    print((1 - 1/np.sqrt(3)) * 0.25)
-    print((1 + 1/np.sqrt(3)) * 0.25)
     for (xi, eta) in gauss_pts:
         s = dshape(xi, eta)
         print(s)
