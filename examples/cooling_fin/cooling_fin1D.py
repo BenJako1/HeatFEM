@@ -18,8 +18,8 @@ sim.property.A(200)
 sim.assemble()
 
 # Apply boundary conditions
-sim.boundary.apply_temp0d(wall, 330)
-sim.boundary.apply_conv1d(sim.mesh.elements, 2e-4, 320, 30)
+sim.boundary.apply_temp(wall, 330)
+sim.boundary.apply_conv1d(sim.mesh.elements, 2e-4, 30)
 sim.boundary.apply_conv0d(free, 2e-4, sim.A[0], 30)
 
 # Solve

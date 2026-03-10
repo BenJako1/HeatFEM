@@ -64,37 +64,17 @@ class Boundary:
     def apply_conv2d(self, faces, h, T_inf):
         coords = self.sim.mesh.nodes[faces]
 
-        # If tri element
-        if faces.shape[1] == 3:
-            A = tri_area(coords)
-            base_arr = np.array([[2, 1, 1],
-                                 [1, 2, 1],
-                                 [1, 1, 2]])
+        A = tri_area(coords)
+        base_arr = np.array([[2, 1, 1],
+                                [1, 2, 1],
+                                [1, 1, 2]])
 
-            for i, face in enumerate(faces):
-                k = (h * A[i] / 12) * base_arr
-                f = (h * T_inf * A[i] / 3) * np.ones((3))
+        for i, face in enumerate(faces):
+            k = (h * A[i] / 12) * base_arr
+            f = (h * T_inf * A[i] / 3) * np.ones((3))
 
-                self.sim.K_sol[np.ix_(face, face)] += k
-                self.sim.Q_sol[face] += f
-
-        # If quad element
-        elif faces.shape[1] == 4:
-            for i, face in enumerate(faces):
-                coords = self.sim.mesh.nodes[face]
-                k, f = self.sim.element.conv2d(coords, h, T_inf)
-
-                self.sim.K_sol[np.ix_(face, face)] += k
-                self.sim.Q_sol[face] += f
+            self.sim.K_sol[np.ix_(face, face)] += k
+            self.sim.Q_sol[face] += f
 
 if __name__ == "__main__":
-    from fem.solver.steadySolver import steadySolver
-    from mesh.GenericMesh import GenericMesh
-    nodes = np.array([[0, 0, 0],
-                       [1, 0, 0],
-                       [1, 1, 0],
-                       [0, 1, 0]])
-    elements = np.array([[0, 1, 2, 3]])
-    mesh = GenericMesh(nodes, elements, "Q4")
-    sim = steadySolver(mesh)
-    sim.boundary.apply_conv2d(elements, 1, 1)
+    pass
