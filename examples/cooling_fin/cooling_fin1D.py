@@ -12,7 +12,8 @@ sim = steadySolver(mesh)
 
 # Assign properties
 sim.property.k(0.2)
-sim.property.A(200)
+sim.property.cA(200)
+sim.property.P(322.5)
 
 # Assemble matrices
 sim.assemble()
@@ -20,7 +21,7 @@ sim.assemble()
 # Apply boundary conditions
 sim.boundary.apply_temp(wall, 330)
 sim.boundary.apply_conv1d(sim.mesh.elements, 2e-4, 30)
-sim.boundary.apply_conv0d(free, 2e-4, sim.A[0], 30)
+sim.boundary.apply_conv0d(free, 2e-4, 30)
 
 # Solve
 T, Q = sim.solve()

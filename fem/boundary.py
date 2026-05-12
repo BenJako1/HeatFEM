@@ -35,9 +35,12 @@ class Boundary:
             f = V[i] * Q_gen / 3 * np.ones((3))
 
             self.sim.Q_sol[face] += f
+    
+    # Write function for generation in 3D
 
     def apply_conv0d(self, nodes, h, T_inf):
-        A = self.sim.A
+        nodes = np.atleast_1d(nodes)
+        A = self.sim.cA
 
         for i, node in enumerate(nodes):
             k = h * A[i]
@@ -45,13 +48,16 @@ class Boundary:
 
             self.sim.K_sol[node, node] += k
             self.sim.Q_sol[node] += f
-
     
     def apply_conv1d(self, edges, h, T_inf):
         coords = self.sim.mesh.nodes[edges]
 
-        t = np.average(self.sim.t[edges], axis=1)
-        A = t * edge_length(coords)
+        if self.sim.mesh.type == "L2":
+            A = self.sim.P * edge_length(coords)
+        elif self.sim.mesh.type == "T3":
+            print(self.sim.t[edges][:, 0])
+            print(edge_length(coords))
+            A = self.sim.t[edges][:, 0] * edge_length(coords)
 
         for i, edge in enumerate(edges):
             k = (h * A[i] / 6) * np.array([[2, 1],
@@ -66,8 +72,8 @@ class Boundary:
 
         A = tri_area(coords)
         base_arr = np.array([[2, 1, 1],
-                                [1, 2, 1],
-                                [1, 1, 2]])
+                             [1, 2, 1],
+                             [1, 1, 2]])
 
         for i, face in enumerate(faces):
             k = (h * A[i] / 12) * base_arr

@@ -13,15 +13,16 @@ for N in refinements:
     # Create simulation object
     sim = steadySolver(mesh)
     sim.property.k(600)
-    sim.property.A(0.01)
+    sim.property.cA(0.01)
+    sim.property.P(200)
 
     # Assemble matrices
     sim.assemble()
 
     # Apply boundary conditions
-    sim.boundary.apply_temp0d(wall, 330)
-    sim.boundary.apply_conv1d(sim.mesh.elements, 200, 0.4, 30)
-    sim.boundary.apply_conv0d(free, 200, 0.01, 30)
+    sim.boundary.apply_temp(wall, 330)
+    sim.boundary.apply_conv1d(sim.mesh.elements, 0.4, 30)
+    sim.boundary.apply_conv0d(free, 0.01, 30)
 
     # Solve
     T, Q = sim.solve()

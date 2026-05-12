@@ -20,7 +20,7 @@ sim.property.A(area_func(mesh.x))
 sim.assemble()
 
 # Apply boundary conditions
-sim.boundary.apply_temp0d(x0, 100)
+sim.boundary.apply_temp(x0, 100)
 sim.boundary.apply_conv0d(x1, 1e3, 20)
 
 # Solve

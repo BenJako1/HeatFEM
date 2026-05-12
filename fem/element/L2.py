@@ -9,7 +9,7 @@ class L2:
 
     def get_K(self, sim, coords, e):
         k = sim.k[e]
-        A = sim.A[e]
+        cA = sim.cA[e]
         L = sim.mesh.L[e]
         B = self.B_matrix(coords)
-        return k * A * L * (B.T @ B)
+        return k * cA * L * (B.T @ B)

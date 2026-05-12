@@ -5,15 +5,19 @@ class GenericMesh:
     def __init__(self, nodes, elements, type):
         self.type = type
 
+        # Generate number of nodes list
         self.N = len(nodes)
 
+        # Generate node, edge and element lists
         self.nodes = np.array(nodes)
         self.elements = np.array(elements)
 
+        # Generate coordinate lists
         self.x = self.nodes[:, 0]
         self.y = self.nodes[:, 1]
         self.z = self.nodes[:, 2]
 
+        # Define characteristic unit lists
         if self.type == "L2":
             self.L = edge_length(self.nodes[self.elements])
         if self.type == "T3":

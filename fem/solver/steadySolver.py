@@ -15,8 +15,6 @@ class steadySolver(SolverBase):
             from fem.element.L2 import L2 as element
         elif self.mesh.type == "T3":
             from fem.element.T3 import T3 as element
-        #elif self.mesh.type == "Q4":
-            #from fem.element.Q4 import Q4 as element
         elif self.mesh.type == "TH4":
             from fem.element.TH4 import TH4 as element
         else:

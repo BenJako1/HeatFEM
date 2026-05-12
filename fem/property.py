@@ -4,17 +4,22 @@ class Property():
     def __init__(self, sim):
         self.sim = sim
     
-    # k doesnt make sense being a nodal value because then we cant have defined border between neighboring elements
-    # A and t doent make sense being elemental since that would lead to disctete geometry
-    
+    # Thermal conductivity
     def k(self, values, elements=None):
         num_elems = len(self.sim.mesh.elements)
         self.sim.k = self._assign_property(values, elements, num_elems)
     
-    def A(self, values, elements=None):
+    # Cross-sectional area for 1D meshes
+    def cA(self, values, elements=None):
         num_elems = len(self.sim.mesh.elements)
-        self.sim.A = self._assign_property(values, elements, num_elems)
+        self.sim.cA = self._assign_property(values, elements, num_elems)
+    
+    # Perimeter for 1D Meshes
+    def P(self, values, elements=None):
+        num_elems = len(self.sim.mesh.elements)
+        self.sim.P = self._assign_property(values, elements, num_elems)
 
+    # Thickness for 2D meshes
     def t(self, values, elements=None):
         num_elems = len(self.sim.mesh.elements)
         self.sim.t = self._assign_property(values, elements, num_elems)
