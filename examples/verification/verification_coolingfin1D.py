@@ -13,7 +13,7 @@ mesh = LineMesh1D(120, 4)
 wall = 0
 free = mesh.N - 1
 
-sim = steadySolver(mesh, k=k, A=A)
+sim = steadySolver(mesh)
 sim.assemble()
 
 print(sim.K)

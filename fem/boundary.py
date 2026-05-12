@@ -1,5 +1,5 @@
 import numpy as np
-from fem.common.utils import edge_length, tri_area, quad_area
+from fem.common.utils import edge_length, tri_area, tet_volume
 
 
 class Boundary:
@@ -36,7 +36,15 @@ class Boundary:
 
             self.sim.Q_sol[face] += f
     
-    # Write function for generation in 3D
+    def apply_gen3d(self, elements, Q_gen):
+        coords = self.sim.mesh.nodes[elements]
+
+        V = tet_volume(coords)
+
+        for i, element in enumerate(elements):
+            f = V[i] * Q_gen / 4 * np.ones((4))
+
+            self.sim.Q_sol[element] += f
 
     def apply_conv0d(self, nodes, h, T_inf):
         nodes = np.atleast_1d(nodes)
@@ -55,8 +63,6 @@ class Boundary:
         if self.sim.mesh.type == "L2":
             A = self.sim.P * edge_length(coords)
         elif self.sim.mesh.type == "T3":
-            print(self.sim.t[edges][:, 0])
-            print(edge_length(coords))
             A = self.sim.t[edges][:, 0] * edge_length(coords)
 
         for i, edge in enumerate(edges):
